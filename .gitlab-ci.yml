@@ -1,0 +1,27 @@
+---
+image: crazymax/docker
+
+stages:
+  - build
+
+services:
+  - docker:dind
+
+before_script:
+  - docker context create gitlabci-${CI_JOB_ID}
+  - echo -n $DOCKERHUB_PASSWORD | docker login -u $DOCKERHUB_USER --password-stdin
+  - docker buildx create --name multiarch-builder --use gitlabci-${CI_JOB_ID}
+
+build:
+  stage: build
+  retry: 2
+  variables:
+    DOCKER_DRIVER: overlay2
+  script:
+    - docker buildx build --push --platform linux/arm64,linux/amd64 --build-arg FROM=openstackhelm/horizon:${RELEASE}-${DISTRO} -t vaultcloudaustralia/osh-horizon:${RELEASE}-${DISTRO} .
+  parallel:
+    matrix:
+      - DISTRO: ubuntu_focal
+        RELEASE: wallaby
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH

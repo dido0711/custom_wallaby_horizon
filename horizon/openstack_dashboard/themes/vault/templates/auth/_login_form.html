@@ -1,0 +1,120 @@
+{% load i18n %}
+
+{% block pre_login %}
+<form id="" class="ng-pristine ng-valid ng-scope"
+      method="POST"
+      action="{% url 'login' %}"
+      autocomplete="off"
+      ng-controller="hzLoginController">
+  {% csrf_token %}
+{% endblock %}
+
+  <div class="panel panel-default">
+
+    <div class="panel-heading">
+    {% block login_header %}
+      <h1 class="login-title">
+        {% trans 'Log in' %}
+      </h1>
+    {% endblock %}
+    </div>
+
+    <div class="panel-body">
+    {% block login_body %}
+      {% comment %}
+        These fake fields are required to prevent Chrome v34+ from autofilling form.
+      {% endcomment %}
+      {% if HORIZON_CONFIG.password_autocomplete != "on" %}
+        <div class="fake_credentials" style="display: none">
+          <input type="text" name="fake_email" value="" />
+          <input type="password" name="fake_password" value="" />
+        </div>
+      {%endif%}
+      {% if show_sso_opts %}
+      {% include "auth/_description.html" %}
+      {% endif %}
+      <fieldset hz-login-finder>
+        {% if request.user.is_authenticated and 'next' in request.GET %}
+          <div class="form-group clearfix error help-block alert alert-danger">
+            <p>
+              {% trans "You do not have permission to access the resource:" %}
+            </p>
+            <p>
+              <strong>
+                {{ request.GET.next }}
+              </strong>
+            </p>
+            <p>
+              {% url 'horizon:user_home' as home_url %}
+              {% blocktrans trimmed %}
+                Login as different user or go back to <a href="{{ home_url }}">home page</a>
+              {% endblocktrans %}
+            </p>
+          </div>
+        {% endif  %}
+        {% if logout_reason %}
+          {% if logout_status == "success" %}
+            <div class="form-group clearfix error help-block alert alert-success" id="logout_reason">
+          {% else %}
+            <div class="form-group clearfix error help-block alert alert-danger" id="logout_reason">
+          {% endif %}
+              <p>{{ logout_reason }}</p>
+            </div>
+        {% endif %}
+        {% if csrf_failure %}
+            <div class="form-group clearfix error help-block alert alert-danger" id="logout_reason">
+              <p>{{ csrf_failure }}</p>
+            </div>
+        {% endif %}
+        {% if next %}
+          <input type="hidden" name="{{ redirect_field_name }}" value="{{ next }}" />
+        {% endif %}
+        {% include "horizon/common/_form_fields.html" %}
+      </fieldset>
+    {% endblock %}
+    </div>
+
+    <div class="panel-footer">
+      {% block login_footer %}
+        <div class="clearfix"></div>
+        <div class="text-center">
+            <h4 class="login-title help_support_title">Get Help & Support</h4>
+        </div>
+        <div class="row">
+          <div class="col-sm-12">
+            <h5 class="help_support_text">
+              I acknowledge that I have received a copy of, accept and will comply with the Vault Systems Procedures Handbook
+              and Vault Systems Security Handbook (Vault employees) or the Agency Provisioning Guide (Vault customers), including but
+              not limited to its refernced policies and procedures. <br>I acknowledge and accept that is my responsibility to become familiar with
+              the documentation and to ensure that my use in relation to Vault Systems assets complies with relevant laws; is exclusively
+              to support the provision of contracted services;and does not result in falsification, inappropriate modification or destruction
+              of information.
+              <br>I understand that I am personally responsible for any computer processing performed under any of my account with Vault Systems.
+              I will only access facilites which I have been authorised to use and will make no attempts to bypass or defeat the security systems or
+              obtain the use of privileges issued to someone else. I will not use or share another person's account or disclose my password. I agree that, Vault
+              Systems shall own all rights, title and interests in all intellectual Property that originated primarily with the conduct of Vault Systems' Business
+              or primarily in connection with Vault Systems' Assets.
+              I acknowledge that my activities may be monitored both internally through auditing procedure and externally through agencies
+              including the Australian Federal Police.
+              <br>I understand the legal ramifications of my actions, and that a non-compliance with this policy may result in my dismissal and/or
+              criminal prosecution.
+              <br>I agree to abide by the above polices. For clarification on any point, I can contact Vault Systems.
+            </h5>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-sm-12" style="margin-top: 10px">
+            <button id="loginBtn" type="submit" class="btn btn-primary pull-right">
+              <span>{% trans "CONNECT" %}</span>
+            </button>
+          </div>
+        </div>
+
+
+      {% endblock %}
+    </div>
+  </div>
+
+{% block post_login%}
+</form>
+{% endblock %}
